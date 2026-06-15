@@ -4,14 +4,14 @@
 POST /generate  接收 JSON 数据，生成 8 图表 + KPI 仪表盘，上传到阿里云 OSS，返回 URL
 
 启动:
-  uvicorn app:app --host 0.0.0.0 --port 8080
+  uvicorn src.service.app:app --host 0.0.0.0 --port 8080
 
-环境变量:
-  OSS_ENDPOINT       阿里云 OSS endpoint
-  OSS_BUCKET         OSS bucket 名称
+环境变量 / .env:
+  OSS_ENDPOINT            阿里云 OSS endpoint
+  OSS_BUCKET              OSS bucket 名称
   OSS_ACCESS_KEY_ID       AccessKey
   OSS_ACCESS_KEY_SECRET   SecretKey
-  OSS_DOMAIN          自定义域名（可选，不设则用默认 OSS URL）
+  OSS_DOMAIN              自定义域名（可选）
 """
 
 import asyncio
@@ -25,8 +25,8 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from src.config import OUTPUT_DIR, OSS_CONFIG
-from src.charting.main import MonthlyReportGenerator
+from ..config import OUTPUT_DIR, OSS_CONFIG
+from ..charting.main import MonthlyReportGenerator
 
 # ── 日志 ────────────────────────────────────────────
 logging.basicConfig(
@@ -175,21 +175,19 @@ async def generate(req: GenerateRequest):
             logger.error(f"OSS upload error: {e}")
             raise HTTPException(status_code=500, detail=f"OSS 上传失败: {e}")
     else:
-        # 不上传，返回本地文件路径（调试用）
         urls = {
             fname.replace(".png", ""): os.path.join(tmpdir, fname)
             for fname in os.listdir(tmpdir) if fname.endswith(".png")
         }
 
     # 4. 组装响应
-    # 分离仪表盘（文件名含 "dashboard"）和单图（文件名含 "chart_"）
     dashboard_url = ""
     charts = []
     for key, url in sorted(urls.items()):
         if key.startswith("dashboard"):
             dashboard_url = url
         else:
-            cid = key[:8]  # "chart_01"
+            cid = key[:8]
             charts.append({
                 "id": cid,
                 "title": _CHART_TITLES.get(cid, cid),
@@ -228,4 +226,4 @@ _CHART_TITLES = {
 # ── 入口 ────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=8080, reload=True)
+    uvicorn.run("src.service.app:app", host="0.0.0.0", port=8080, reload=True)

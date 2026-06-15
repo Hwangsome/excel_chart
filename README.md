@@ -8,7 +8,6 @@
 
 ```
 excel_chart/
-├── app.py                    # FastAPI 服务入口
 ├── requirements.txt          # 服务依赖
 ├── Dockerfile                # Docker 部署
 ├── README.md
@@ -24,6 +23,9 @@ excel_chart/
 │   │   ├── template_renderer.py  # Jinja2 渲染 HTML
 │   │   ├── screenshot.py     # Playwright 截图
 │   │   └── main.py           # 主控编排
+│   ├── service/
+│   │   ├── __init__.py
+│   │   └── app.py            # FastAPI 服务入口
 │   └── templates/
 │       └── dashboard.html    # ECharts 仪表盘 HTML 模板
 └── output/                   # 本地输出（服务模式下使用临时目录）
@@ -87,7 +89,7 @@ export OSS_DOMAIN=cdn.example.com        # 可选，自定义域名
 ### 3. 启动服务
 
 ```bash
-uvicorn app:app --host 0.0.0.0 --port 8080 --reload
+uvicorn src.service.app:app --host 0.0.0.0 --port 8080 --reload
 ```
 
 ### 4. 调用
@@ -436,7 +438,7 @@ SCREENSHOT = {"device_scale_factor": 2.0, "timeout_ms": 30000}
 
 | 模块 | 职责 |
 |------|------|
-| `app.py` | FastAPI 服务、OSS 上传、响应组装 |
+| `src/service/app.py` | FastAPI 服务、OSS 上传、响应组装 |
 | `json_reader.py` | JSON 解析，`values` 二维数组 → `list[dict]` |
 | `data_extractor.py` | 提取图表数据、**自动检测最新月份**、渠道 fallback |
 | `chart_data_builder.py` | 构建 ECharts option + KPI 卡片格式化 |

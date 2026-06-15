@@ -33,4 +33,4 @@ ENV OSS_ACCESS_KEY_ID=""
 ENV OSS_ACCESS_KEY_SECRET=""
 ENV OSS_DOMAIN=""
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "src.service.app:app", "--host", "0.0.0.0", "--port", "8080"]
