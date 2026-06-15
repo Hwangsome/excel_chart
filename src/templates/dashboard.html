@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>店铺运营月报 - {{ report_year }}年{{ report_month }}月</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: {{ font_stack }};
+            background: #F5F7FA;
+            color: #333;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 24px 40px;
+            background: #F5F7FA;
+        }
+
+        /* ===== 页头 ===== */
+        .header {
+            text-align: center;
+            padding: 20px 0 30px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #17324D;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+        .header .subtitle {
+            font-size: 13px;
+            color: #999;
+        }
+
+        /* ===== KPI 卡片 ===== */
+        .kpi-section { margin-bottom: 20px; }
+        .kpi-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #999;
+            margin-bottom: 10px;
+            padding-left: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .kpi-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .kpi-card {
+            flex: 1;
+            min-width: 130px;
+            background: #FFFFFF;
+            border-radius: 8px;
+            padding: 16px 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-left: 4px solid #17324D;
+            transition: box-shadow 0.2s;
+        }
+        .kpi-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+        .kpi-card .label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .kpi-card .value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #17324D;
+            line-height: 1.2;
+        }
+        .kpi-card .unit {
+            font-size: 12px;
+            color: #bbb;
+            font-weight: 400;
+            margin-left: 2px;
+        }
+
+        /* KPI 卡片颜色变体 */
+        .kpi-card.accent { border-left-color: #DC473E; }
+        .kpi-card.accent .value { color: #DC473E; }
+        .kpi-card.secondary { border-left-color: #2F6F9F; }
+        .kpi-card.secondary .value { color: #2F6F9F; }
+        .kpi-card.success { border-left-color: #27AE60; }
+        .kpi-card.success .value { color: #27AE60; }
+
+        /* ===== 分区标题 ===== */
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #17324D;
+            padding: 20px 0 8px;
+            margin-bottom: 14px;
+            border-bottom: 2px solid #17324D;
+        }
+
+        /* ===== 图表 ===== */
+        .chart-container {
+            background: #FFF;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .chart-box {
+            width: 100%;
+            height: 400px;
+        }
+        .chart-box.wide { height: 420px; }
+
+        .chart-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .chart-row .chart-container {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .chart-row .chart-box {
+            height: 380px;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+
+    <!-- ===== 页头 ===== -->
+    <div class="header">
+        <h1>店铺运营数据月报</h1>
+        <div class="subtitle">
+            {{ report_year }}年{{ report_month }}月 &nbsp;|&nbsp; 生成时间：{{ gen_time }}
+        </div>
+    </div>
+
+    <!-- ===== KPI 第1行：核心经营指标 ===== -->
+    <div class="kpi-section">
+        <div class="kpi-section-title">📊 核心经营指标</div>
+        <div class="kpi-row">
+            {% for card in kpi_cards_rows[0] %}
+            <div class="kpi-card {{ card.style }}">
+                <div class="label">{{ card.label }}</div>
+                <div class="value">{{ card.value }}<span class="unit">{{ card.unit }}</span></div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ===== KPI 第2行：广告投放效果 ===== -->
+    <div class="kpi-section">
+        <div class="kpi-section-title">📈 广告投放效果</div>
+        <div class="kpi-row">
+            {% for card in kpi_cards_rows[1] %}
+            <div class="kpi-card {{ card.style }}">
+                <div class="label">{{ card.label }}</div>
+                <div class="value">{{ card.value }}<span class="unit">{{ card.unit }}</span></div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ===== KPI 第3行：运营效率指标 ===== -->
+    <div class="kpi-section">
+        <div class="kpi-section-title">⚙️ 运营效率指标</div>
+        <div class="kpi-row">
+            {% for card in kpi_cards_rows[2] %}
+            <div class="kpi-card {{ card.style }}">
+                <div class="label">{{ card.label }}</div>
+                <div class="value">{{ card.value }}<span class="unit">{{ card.unit }}</span></div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ===== 图表区域 ===== -->
+
+    <!-- Chart 1: 月度销售额趋势 -->
+    <div class="section-title">一、月度销售额与同比增长趋势</div>
+    <div class="chart-container">
+        <div class="chart-box wide" id="chart_01"></div>
+    </div>
+
+    <!-- Chart 2: 订单数与转化率 -->
+    <div class="section-title">二、订单数与转化率趋势</div>
+    <div class="chart-container">
+        <div class="chart-box wide" id="chart_02"></div>
+    </div>
+
+    <!-- Chart 3: 广告GMV & ROI -->
+    <div class="section-title">三、广告投放GMV与ROI趋势</div>
+    <div class="chart-container">
+        <div class="chart-box wide" id="chart_03"></div>
+    </div>
+
+    <!-- Chart 4: 新增粉丝 -->
+    <div class="section-title">四、每月新增粉丝数量</div>
+    <div class="chart-container">
+        <div class="chart-box" id="chart_04"></div>
+    </div>
+
+    <!-- Chart 5 & 6 并排：品类结构 -->
+    <div class="section-title">五、品类销售结构分析</div>
+    <div class="chart-row">
+        <div class="chart-container">
+            <div class="chart-box" id="chart_05"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-box" id="chart_06"></div>
+        </div>
+    </div>
+
+    <!-- Chart 7 & 8 并排：渠道结构 -->
+    <div class="section-title">六、渠道销售结构分析</div>
+    <div class="chart-row">
+        <div class="chart-container">
+            <div class="chart-box" id="chart_07"></div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-box" id="chart_08"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 所有 ECharts option 由 Jinja2 注入
+    const chartOptions = {{ chart_options_json | safe }};
+
+    const chartIds = [
+        'chart_01', 'chart_02', 'chart_03', 'chart_04',
+        'chart_05', 'chart_06', 'chart_07', 'chart_08'
+    ];
+
+    const chartInstances = {};
+
+    chartIds.forEach(function(id) {
+        if (chartOptions[id]) {
+            var dom = document.getElementById(id);
+            if (dom) {
+                var chart = echarts.init(dom, null, {
+                    renderer: 'canvas'
+                });
+                chart.setOption(chartOptions[id]);
+                chartInstances[id] = chart;
+            }
+        }
+    });
+
+    // 响应式 resize
+    window.addEventListener('resize', function() {
+        Object.values(chartInstances).forEach(function(chart) {
+            chart.resize();
+        });
+    });
+</script>
+</body>
+</html>
